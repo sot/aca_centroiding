@@ -10,7 +10,7 @@
     
     * compare the raw centroids with the telemetered values (aoacyan, aoaczan).<br><br>
 
-2. Apply a weighting mask to the raw images, higher weigt assigned to the central pixels. Check if this improves ACA centroiding for faint stars.
+2. Apply a weighting mask to the raw images, higher weight assigned to the central pixels. Investigate if this improves ACA centroiding.
 
 ### Results
 
