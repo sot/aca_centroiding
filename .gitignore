@@ -1,2 +1,5 @@
 work_in_progress
 .ipynb_checkpoints
+*.pyc
+py/__pycache__
+py/*~
