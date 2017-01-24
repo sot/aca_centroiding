@@ -100,7 +100,7 @@ def plot_px_history(table, keys, hot_pixels=None, slot=0, mag=None,
             plt.plot(table['time'][0] - table['time'][0][0], hot_pixels[key],
                      label=legend_text, color='gray')
         plt.plot(time, px_vals, label='Sampled', color='slateblue')
-        plt.plot(time, bgd_vals, label="Derived", color='darkorange')
+        plt.plot(time, bgd_vals, label="Derived", color='darkorange', lw=2)
         plt.xlabel('Time (sec)')
         plt.ylabel('Pixel value')
         plt.title('{} pixel coordinates = {}'.format(title_text, key))
@@ -276,7 +276,7 @@ def plot_image(img, img_number, row0, col0, img_size, vmin=0, vmax=600):
 
     data[dr:dr + img_size, dc:dc + img_size] = img[:img_size, :img_size]
 
-    im = plt.imshow(data, cmap=plt.get_cmap('gist_stern'), interpolation='none',
+    im = plt.imshow(data, cmap=plt.get_cmap('hot'), interpolation='none',
                     origin='lower', vmin=vmin, vmax=vmax)
 
     return im
@@ -303,11 +303,12 @@ def plot_images(table, n_start, n_stop, slot=0, mag=None, img_size=8,
     times = table['time'][0]
     delta_t = times[1] - times[0]
 
-    fig = plt.figure(figsize=(8.5, 22))
+    fig = plt.figure(figsize=(8, 25))
     
     data = []
     for i, aa in enumerate(table[ok][colname][0][n_start:n_stop]):
-        plt.subplot(12, 10, i + 1)
+        #plt.subplot(12, 10, i + 1)
+        plt.subplot(12, 7, i + 1)
         row0 = table[ok]['row0'][0]
         col0 = table[ok]['col0'][0]
         index = i + n_start
@@ -320,7 +321,7 @@ def plot_images(table, n_start, n_stop, slot=0, mag=None, img_size=8,
 
     plt.subplots_adjust(left=0.0, right=0.9,
                         top=0.9, bottom=0.2,
-                        wspace=0.1)
+                        wspace=0.2, hspace=0.01)
     
     cbar_ax = fig.add_axes([0.92, 0.85, 0.01, 0.05])
     cbar = fig.colorbar(im, cax=cbar_ax)
@@ -377,7 +378,7 @@ def plot_bgd_patch(deque_dict, img_number, row0, col0, img_size, bgd_class_name,
                 val = sigma_clip(deque_dict[key])
             data[np.int(key[0] - r_min), np.int(key[1] - c_min)] = val
 
-    im = plt.imshow(data, cmap=plt.get_cmap('gist_stern'), interpolation='none',
+    im = plt.imshow(data, cmap=plt.get_cmap('hot'), interpolation='none',
                origin='lower', vmin=vmin, vmax=vmax)
 
     return data, im
@@ -411,23 +412,26 @@ def plot_bgd_patches(table, n_start, n_stop, slot=0, mag=None, img_size=8,
         ok3 = table['mag'] == mag
         ok = ok * ok3
 
-    fig = plt.figure(figsize=(8.5, 22))
+    times = table['time'][0]
+    delta_t = times[1] - times[0]
+        
+    fig = plt.figure(figsize=(8, 25))
 
     data = []
     for i, aa in enumerate(table[ok]['deque_dict'][0][n_start:n_stop]):
-        plt.subplot(12, 10, i + 1)
+        plt.subplot(12, 7, i + 1)
         row0 = table[ok]['row0'][0]
         col0 = table[ok]['col0'][0]
         index = n_start + i
         dat, im = plot_bgd_patch(aa, index, row0, col0, img_size, bgd_class_name,
                                 vmin=vmin, vmax=vmax)
-        plt.title('t{}:\n{}, {}'.format(index, row0[index], col0[index]));
+        plt.title('t{:4.0f}:\n{}, {}'.format(index * delta_t, row0[index], col0[index]));
         plt.axis('off')
         data.append(dat)
 
     plt.subplots_adjust(left=0.0, right=0.9,
                         top=0.9, bottom=0.2,
-                        wspace=0.1)
+                        wspace=0.2, hspace=0.01)
     
     cbar_ax = fig.add_axes([0.92, 0.85, 0.01, 0.05])
     cbar = fig.colorbar(im, cax=cbar_ax)
