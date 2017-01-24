@@ -63,7 +63,7 @@ def plot_px_history(table, keys, hot_pixels=None, slot=0, mag=None,
 
     n = len(keys)
     ll = 3 * n
-    fig = plt.figure(figsize=(8.5, ll))
+    fig = plt.figure(figsize=(6, ll))
 
     ok1 = table['slot'] == slot
     ok2 = table['bgd_class_name'] == bgd_class_name
@@ -157,7 +157,7 @@ def plot_coords(slot, table, coord, mag=None):
     :param coord: name of coordinate, one of 'row', 'col', 'yan', 'zan'
     """
 
-    fig = plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(9, 6))
     color = ['green', 'red', 'blue']
 
     for i, bgd_class_name in enumerate(Bgd_Class_Names):
