@@ -16,12 +16,17 @@ def plot_d_ang(slot, slot_ref, key, dt, table):
     ok1 = table['slot'] == slot
     ok2 = table['slot'] == slot_ref
 
-    fig = plt.figure(figsize=(8, 2.5))
+    fig = plt.figure(figsize=(7.5, 2.5))
 
-    ylim = None
+    #ylim = None
 
     for i, bgd_class_name in enumerate(Bgd_Class_Names):
-        plt.subplot(1, 3, i + 1)
+        if i==0:
+            ax1 = plt.subplot(1, 3, 1)
+            plt.ylabel('delta {} (arcsec)'.format(key))
+        else:
+            ax = plt.subplot(1, 3, i + 1, sharey=ax1)
+            plt.setp(ax.get_yticklabels(), visible=False)
         ok = table['bgd_class_name'] == bgd_class_name
         ang_interp = Ska.Numpy.interpolate(table[ok * ok1][key][0],
                                            table[ok * ok1]['time'][0] + dt,
@@ -29,21 +34,21 @@ def plot_d_ang(slot, slot_ref, key, dt, table):
                                            method="nearest")
         d_ang = table[ok * ok2][key][0] - ang_interp
         time = table[ok * ok2]['time'][0] - table[ok * ok2]['time'][0][0]
+        
         plt.plot(time, d_ang, color='Darkorange',
-                 label='std = {:.5f}'.format(np.std(d_ang - np.median(d_ang))))
+                      label='std = {:.5f}'.format(np.std(d_ang - np.median(d_ang))))
         plt.xlabel('Time (sec)')
-        plt.ylabel('delta {} (arcsec)'.format(key))
         plt.title(bgd_class_name)
         plt.legend()
         plt.margins(0.05)
-        if ylim is None:
-            ylim = plt.gca().get_ylim()
-        else:
-            plt.ylim(ylim)
+        #if ylim is None:
+        #    ylim = plt.gca().get_ylim()
+        #else:
+        #    plt.ylim(ylim)            
 
     plt.subplots_adjust(left=0.05, right=0.99,
                          bottom=0.2, top=0.9,
-                         hspace=0.3, wspace=0.3)
+                         hspace=0.3, wspace=0.1)
     return
 
 
@@ -126,7 +131,7 @@ def plot_coords_excess(slot, table, coord):
     :param coord: name of coordinate, one of 'row', 'col', 'yan', 'zan'
     """
 
-    fig = plt.figure(figsize=(10, 6))
+    fig = plt.figure(figsize=(9, 6))
     color = ['green', 'red', 'blue']
 
     for i, bgd_class_name in enumerate(Bgd_Class_Names):
@@ -138,7 +143,11 @@ def plot_coords_excess(slot, table, coord):
                  label="std = {:.3f}, ".format(std) + bgd_class_name)
         plt.margins(0.05)
 
-    plt.ylabel(coord + " - true " + coord)
+    if coord in ['yan', 'zan']:
+        unit = '(arcsec)'
+    else:
+        unit = '(pixel)'
+    plt.ylabel(coord + " - true " + coord + " " + unit)
     plt.xlabel("Time (sec)")
     plt.title("Difference between derived " + coord +
               " and true " + coord + " coordinates");
