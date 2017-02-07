@@ -61,7 +61,7 @@ class DynamBgd_Median(object):
     """
 
     def __init__(self, img_size, ndeque=1000, deque_dict=None, img=None,
-                 row0=0, col0=0, bgdavg=0):
+                 row0=0, col0=0, bgdavg=0, max_bgd_excess=None, quench=-1):
 
         self.img_size = img_size
         self.ndeque = ndeque
@@ -72,6 +72,11 @@ class DynamBgd_Median(object):
         self.row0 = row0
         self.col0 = col0
         self.bgdavg = bgdavg
+        self.max_bgd_excess = max_bgd_excess
+        if quench not in [-1, 0, 1]:
+            raise ValueError("DynamBgd:: quench expected to be in [-1, 0, 1]")
+        else:
+            self.quench = quench
 
         if self.img_size == 8:
             self.r = [0, 0, 0, 0, 0, 0, 0, 0, 7, 7, 7, 7, 7, 7, 7, 7,
@@ -125,6 +130,12 @@ class DynamBgd_Median(object):
                 else:
                     bgd_img[rr, cc] = self.bgdavg
 
+        if self.max_bgd_excess is not None:
+            if self.quench==0:
+                #
+            elif self.quench==1:
+                #
+                    
         return bgd_img
 
 
@@ -189,7 +200,7 @@ class DynamBgd_Median(object):
     def _get_value(self, key):
         """
         Return median
-        """
+        """        
         return np.median(self.deque_dict[key])
 
 

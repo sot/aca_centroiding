@@ -36,7 +36,7 @@ def plot_d_ang(slot, slot_ref, key, dt, table):
         time = table[ok * ok2]['time'][0] - table[ok * ok2]['time'][0][0]
         
         plt.plot(time, d_ang, color='Darkorange',
-                      label='std = {:.5f}'.format(np.std(d_ang - np.median(d_ang))))
+                      label='std = {:.3f}'.format(np.std(d_ang - np.median(d_ang))))
         plt.xlabel('Time (sec)')
         plt.title(bgd_class_name)
         plt.legend()
@@ -54,7 +54,8 @@ def plot_d_ang(slot, slot_ref, key, dt, table):
 
 def plot_px_history(table, keys, hot_pixels=None, slot=0, mag=None,
                     bgd_class_name='FlightBgd',
-                    legend_text="", title_text='Hot'):
+                    legend_text="", title_text='Hot',
+                    max_bgd_excess=None):
     """
     Plot time series of a given ACA pixel value.
 
@@ -106,6 +107,14 @@ def plot_px_history(table, keys, hot_pixels=None, slot=0, mag=None,
                      label=legend_text, color='gray')
         plt.plot(time, px_vals, label='Sampled', color='slateblue')
         plt.plot(time, bgd_vals, label="Derived", color='darkorange', lw=2)
+
+        if max_bgd_excess is not None:
+            bgd_vals = np.array(bgd_vals)
+            bgd_mask = bgd_vals > hot_pixels[key] + max_bgd_excess
+            bgd_vals_masked = bgd_vals * ~bgd_mask
+            #plt.plot(time, bgd_vals_masked, label="Quenched", color='crimson', lw=2)
+            plt.plot(time[bgd_mask], bgd_vals_masked[bgd_mask], label="Quenched", color='crimson', lw=2, ls='None', marker='|')
+
         plt.xlabel('Time (sec)')
         plt.ylabel('Pixel value')
         plt.title('{} pixel coordinates = {}'.format(title_text, key))
@@ -252,6 +261,29 @@ def plot_star_image(data):
     return
 
 
+def plot_8x8_contour(dr, dc):
+    """
+    Plot contour around 32 pixels used for centroiding
+    (the 6x6 region with mousebitten corners)
+    """
+    c8x8 = np.array([0, 8, 8, 0, 0]) - 0.5
+    r8x8 = np.array([0, 0, 8, 8, 0]) - 0.5
+
+    plt.plot(c8x8 + dc, r8x8 + dr, '-', lw=1, color='w')
+    return
+
+
+def plot_32px_contour(dr, dc):
+    """
+    Plot contour around 32 pixels used for centroiding
+    (the 6x6 region with mousebitten corners)
+    """
+    c32 = np.array([1, 2, 2, 6, 6, 7, 7, 6, 6, 2, 2, 1, 1]) - 0.5
+    r32 = np.array([2, 2, 1, 1, 2, 2, 6, 6, 7, 7, 6, 6, 2]) - 0.5
+    plt.plot(c32 + dc, r32 + dr, '-', lw=1, color='w')
+    return
+
+
 def patch_coords(row0, col0, img_size):
 
     r_min = np.int(row0.min())
@@ -287,6 +319,8 @@ def plot_image(img, img_number, row0, col0, img_size, vmin=0, vmax=600):
 
     im = plt.imshow(data, cmap=plt.get_cmap('hot'), interpolation='none',
                     origin='lower', vmin=vmin, vmax=vmax)
+    
+    plot_32px_contour(dr, dc)
 
     return im
 
@@ -330,7 +364,7 @@ def plot_images(table, n_start, n_stop, slot=0, mag=None, img_size=8,
 
     plt.subplots_adjust(left=0.0, right=0.9,
                         top=0.9, bottom=0.2,
-                        wspace=0.2, hspace=0.01)
+                        wspace=0., hspace=0.01)
     
     cbar_ax = fig.add_axes([0.92, 0.85, 0.01, 0.05])
     cbar = fig.colorbar(im, cax=cbar_ax)
@@ -389,6 +423,9 @@ def plot_bgd_patch(deque_dict, img_number, row0, col0, img_size, bgd_class_name,
 
     im = plt.imshow(data, cmap=plt.get_cmap('hot'), interpolation='none',
                origin='lower', vmin=vmin, vmax=vmax)
+    
+    plot_32px_contour(dr, dc)
+    plot_8x8_contour(dr, dc)
 
     return data, im
 
@@ -440,7 +477,7 @@ def plot_bgd_patches(table, n_start, n_stop, slot=0, mag=None, img_size=8,
 
     plt.subplots_adjust(left=0.0, right=0.9,
                         top=0.9, bottom=0.2,
-                        wspace=0.2, hspace=0.01)
+                        wspace=0, hspace=0.01)
     
     cbar_ax = fig.add_axes([0.92, 0.85, 0.01, 0.05])
     cbar = fig.colorbar(im, cax=cbar_ax)

@@ -6,6 +6,7 @@ import numpy.ma as ma
 from astropy.table import Table
 # local imports:
 import classes
+# local imports:
 from classes import *
 
 
@@ -133,13 +134,19 @@ def get_centroids(slot_data, img_size, bgd_object, nframes=None):
 
         img = raw_img - bgd_img
 
-        # If dynamic background, don't oversubtract?
+        # If dynamic background, don't oversubtract
         # Value of pixel with bgd > raw image value will be set to zero:
-        
-        #if isinstance(bgd_object, (DynamBgd_Median, DynamBgd_SigmaClip)):
-        #    bgd_mask = bgd_img > raw_img
-        #    img = raw_img - ma.array(bgd_img, mask=bgd_mask)
-        #    img = img.data * ~bgd_mask
+
+        if isinstance(bgd_object, (DynamBgd_Median, DynamBgd_SigmaClip)):
+            if not bgd_object.max_bgd_excess is None:
+                if bgd_object.quench == 0:
+                    bgd_mask = bgd_img > raw_img + bgd_object.max_bgd_excess
+                    img = raw_img - ma.array(bgd_img, mask=bgd_mask)
+                    img = img.data * ~bgd_mask
+                #elif bgd_object.quench == 1:
+                    # replace latest entry in deque dict with raw pixel value
+                    # update bgd image correspondingly
+                    # make sure to do this only once
 
         # Calculate centroids for current bgd-subtracted img, use first moments
         rowcol = get_current_centroids(img, img_size)
