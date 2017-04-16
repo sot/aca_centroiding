@@ -6,19 +6,15 @@ import Ska.Numpy
 Bgd_Class_Names = ['FlightBgd', 'DynamBgd_Median', 'DynamBgd_SigmaClip']
 
 
-def plot_d_ang(slot, slot_ref, key, dt, table):
+def plot_d_ang(slot, slot_ref, key, dt, table, nstart=None, nstop=None):
     """
     Convert this into a chandra_aca tool
     """
-    # plot delta yan(or zan)
-    #ylim = [(76, 82), (2272, 2278)]
-
+    
     ok1 = table['slot'] == slot
     ok2 = table['slot'] == slot_ref
 
     fig = plt.figure(figsize=(7.5, 2.5))
-
-    #ylim = None
 
     for i, bgd_class_name in enumerate(Bgd_Class_Names):
         if i==0:
@@ -35,11 +31,19 @@ def plot_d_ang(slot, slot_ref, key, dt, table):
         d_ang = table[ok * ok2][key][0] - ang_interp
         time = table[ok * ok2]['time'][0] - table[ok * ok2]['time'][0][0]
         
+        if nstop is None:
+            nstop = len(d_ang)
+            
+        if nstart is None:
+            nstart = 0
+            
+        residuals = np.std(d_ang[nstart:nstop] - np.median(d_ang[nstart:nstop]))
+        
         plt.plot(time, d_ang, color='Darkorange',
-                      label='std = {:.5f}'.format(np.std(d_ang - np.median(d_ang))))
+                      label='std = {:.3f}'.format(residuals))
         plt.xlabel('Time (sec)')
         plt.title(bgd_class_name)
-        plt.legend()
+        plt.legend(loc='best')
         plt.margins(0.05)
         #if ylim is None:
         #    ylim = plt.gca().get_ylim()
@@ -95,8 +99,8 @@ def plot_px_history(table, keys, hot_pixels=None, slot=0, mag=None,
                     current_bgd_val = np.median(deque[key])
                 elif bgd_class_name == 'DynamBgd_SigmaClip':
                     current_bgd_val = sigma_clip(deque[key])
-                px_vals.append(current_px_val)
-                bgd_vals.append(current_bgd_val)
+                px_vals.append(current_px_val * 5./1.7) # e-/sec
+                bgd_vals.append(current_bgd_val * 5./1.7)
             else:
                 px_vals.append(-1)
                 bgd_vals.append(-1)
@@ -107,7 +111,7 @@ def plot_px_history(table, keys, hot_pixels=None, slot=0, mag=None,
         plt.plot(time, px_vals, label='Sampled', color='slateblue')
         plt.plot(time, bgd_vals, label="Derived", color='darkorange', lw=2)
         plt.xlabel('Time (sec)')
-        plt.ylabel('Pixel value')
+        plt.ylabel('Pixel value (e-/sec)')
         plt.title('{} pixel coordinates = {}'.format(title_text, key))
         plt.legend()
         plt.grid()
@@ -324,7 +328,8 @@ def plot_images(table, n_start, n_stop, slot=0, mag=None, img_size=8,
         aa = aa.reshape(8, 8) # imgraw 64, bgdimg 8x8
         im = plot_image(aa, index, row0, col0, img_size,
                             vmin=vmin, vmax=vmax)
-        plt.title('t{:4.0f}:\n{}, {}'.format(index * delta_t, row0[index], col0[index]));
+        #plt.title('t{:4.0f}:\n{}, {}'.format(index * delta_t, row0[index], col0[index]));
+        plt.title('{:4.0f}:\n{}, {}'.format(index, row0[index], col0[index]));
         plt.axis('off')
         data.append(aa)
 
@@ -337,7 +342,7 @@ def plot_images(table, n_start, n_stop, slot=0, mag=None, img_size=8,
     cbar.set_ticks([0, np.int(vmax/2), vmax])
     cbar.set_ticklabels(['0', '{:0d}'.format(np.int(vmax/2)), '{}'.format(vmax)])
     
-    print("Format of the titles is 'time: imgrow0, imgcol0'")
+    print("Format of the titles is 'frame #: imgrow0, imgcol0'")
     print("Plot {} from {} to {}".format(colname, n_start, n_stop))
     print("Bgd Class: {}, ndeque = {}".format(bgd_class_name, table[ok]['ndeque'][0]))
 

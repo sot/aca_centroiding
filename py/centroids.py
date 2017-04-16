@@ -9,7 +9,7 @@ import classes
 from classes import *
 
 
-def centroids(slot, slot_data, img_size, bgd_object, nframes=1000):
+def centroids(slot, slot_data, img_size, bgd_object, nframes=None):
     """
     Returns a list of dictionaries.
 
@@ -38,6 +38,9 @@ def centroids(slot, slot_data, img_size, bgd_object, nframes=1000):
     #print('Slot = {}'.format(slot))
 
     slot_row = {}
+    
+    if nframes is None:
+        nframes = len(slot_data)
 
     # rowcol_cntrds, yagzag_cntrds, bgd_imgs, deque_dicts
     result =  get_centroids(slot_data, img_size, bgd_object, nframes=nframes)
@@ -136,14 +139,18 @@ def get_centroids(slot_data, img_size, bgd_object, nframes=None):
         # If dynamic background, don't oversubtract?
         # Value of pixel with bgd > raw image value will be set to zero:
         
-        #if isinstance(bgd_object, (DynamBgd_Median, DynamBgd_SigmaClip)):
-        #    bgd_mask = bgd_img > raw_img
-        #    img = raw_img - ma.array(bgd_img, mask=bgd_mask)
-        #    img = img.data * ~bgd_mask
+        if isinstance(bgd_object, (DynamBgd_Median, DynamBgd_SigmaClip)):
+            bgd_mask = bgd_img > raw_img
+            img = raw_img - ma.array(bgd_img, mask=bgd_mask)
+            img = img.data * ~bgd_mask
 
         # Calculate centroids for current bgd-subtracted img, use first moments
         rowcol = get_current_centroids(img, img_size)
         rowcol_centroids.append(rowcol)
+        
+        # debug 18983
+        #if index > 1900:
+        #    print('Frame {}, rowcol = {}'.format(index, rowcol))
 
         # Translate (row, column) centroid to (yag, zag)
         y_pixel = rowcol[0] + frame_data['IMGROW0']
